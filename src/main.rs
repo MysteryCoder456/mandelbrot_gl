@@ -6,7 +6,7 @@ extern crate glfw;
 mod app;
 
 fn main() {
-    let mut app = Application::new(1024, 720, "Mandlebrot");
+    let mut app = Application::new(1024, 720, "Mandelbrot");
 
     app.set_event_handler(|_event| {
         // TODO: handle stuff here in future

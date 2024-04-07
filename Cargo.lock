@@ -94,7 +94,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "mandlebrot"
+name = "mandelbrot"
 version = "0.1.0"
 dependencies = [
  "gl",
