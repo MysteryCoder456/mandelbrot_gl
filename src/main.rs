@@ -11,24 +11,29 @@ use shader::Shader;
 mod app;
 mod shader;
 
+#[rustfmt::skip]
+const VERTICES: [f32; 12] = [
+     1.0,  1.0,
+    -1.0,  1.0,
+    -1.0, -1.0,
+    -1.0, -1.0,
+     1.0, -1.0,
+     1.0,  1.0,
+];
+
+const PAN_SPEED: f32 = 4.0;
+
 fn main() {
     let (mut app, events) = Application::new(1024, 720, "Mandelbrot");
 
-    let triangle_program = unsafe {
-        match Shader::new("shaders/triangle_vs.glsl", "shaders/triangle_fs.glsl") {
+    let mandelbrot_program = unsafe {
+        match Shader::new("shaders/mandelbrot_vs.glsl", "shaders/mandelbrot_fs.glsl") {
             Ok(prog) => prog,
             Err(err) => panic!("Shader compilation failed:\n{}", err),
         }
     };
 
-    #[rustfmt::skip]
-    let verts: [f32; 6] = [
-        0.0, 0.5,
-        0.5, -0.5,
-        -0.5, -0.5,
-    ];
-
-    let triangle_vao = unsafe {
+    let mandelbrot_vao = unsafe {
         let (mut vao, mut vbo) = (0, 0);
 
         // Create vertex array
@@ -40,8 +45,8 @@ fn main() {
         gl::BindBuffer(gl::ARRAY_BUFFER, vbo);
         gl::BufferData(
             gl::ARRAY_BUFFER,
-            std::mem::size_of_val(&verts) as isize,
-            verts.as_ptr() as *const c_void,
+            std::mem::size_of_val(&VERTICES) as isize,
+            VERTICES.as_ptr() as *const c_void,
             gl::STATIC_DRAW,
         );
 
@@ -56,15 +61,16 @@ fn main() {
         );
         gl::EnableVertexAttribArray(0);
 
+        // Unbind objects
         gl::BindBuffer(gl::ARRAY_BUFFER, 0);
         gl::BindVertexArray(0);
 
         vao
     };
 
-    let mut camera_pos = glm::vec2(0.0, 0.0);
-    let mut zoom = 1.0;
-    //
+    let mut pan = glm::vec2(0.0, 0.0);
+    let mut zoom = 0.1;
+
     // Main loop
     while app.is_window_open() {
         // Handle events
@@ -73,28 +79,21 @@ fn main() {
             match event {
                 WindowEvent::Close => app.close_window(),
                 WindowEvent::FramebufferSize(w, h) => unsafe { gl::Viewport(0, 0, w, h) },
-                WindowEvent::Key(Key::Left, _, Action::Press, _) => camera_pos.x -= 0.1,
-                WindowEvent::Key(Key::Right, _, Action::Press, _) => camera_pos.x += 0.1,
-                WindowEvent::Key(Key::Up, _, Action::Press, _) => camera_pos.y += 0.1,
-                WindowEvent::Key(Key::Down, _, Action::Press, _) => camera_pos.y -= 0.1,
-                WindowEvent::Key(Key::Minus, _, Action::Press, _) => zoom *= 0.8,
-                WindowEvent::Key(Key::Equal, _, Action::Press, _) => zoom *= 1.25,
+                WindowEvent::Key(Key::Left, _, Action::Press, _) => pan.x -= PAN_SPEED,
+                WindowEvent::Key(Key::Right, _, Action::Press, _) => pan.x += PAN_SPEED,
+                WindowEvent::Key(Key::Up, _, Action::Press, _) => pan.y += PAN_SPEED,
+                WindowEvent::Key(Key::Down, _, Action::Press, _) => pan.y -= PAN_SPEED,
+                WindowEvent::Key(Key::Minus, _, Action::Press, _) => zoom /= 1.5,
+                WindowEvent::Key(Key::Equal, _, Action::Press, _) => zoom *= 1.5,
                 _ => {}
             }
         }
 
-        let mut view = glm::Mat4::identity();
-        view = glm::translate(&view, &glm::vec2_to_vec3(&-camera_pos));
-        view = glm::scale(&view, &glm::vec3(zoom, zoom, 1.0));
-
         // Uniforms
         unsafe {
-            gl::UniformMatrix4fv(
-                triangle_program.get_uniform_location("view"),
-                1,
-                gl::FALSE,
-                glm::value_ptr(&view).as_ptr(),
-            );
+            mandelbrot_program.use_program();
+            gl::Uniform2f(mandelbrot_program.get_uniform_location("pan"), pan.x, pan.y);
+            gl::Uniform1f(mandelbrot_program.get_uniform_location("zoom"), zoom);
         }
 
         // Render
@@ -102,9 +101,9 @@ fn main() {
             gl::Clear(gl::COLOR_BUFFER_BIT);
             gl::ClearColor(0.0, 0.0, 0.0, 1.0);
 
-            triangle_program.use_program();
-            gl::BindVertexArray(triangle_vao);
-            gl::DrawArrays(gl::TRIANGLES, 0, 3);
+            mandelbrot_program.use_program();
+            gl::BindVertexArray(mandelbrot_vao);
+            gl::DrawArrays(gl::TRIANGLES, 0, 6);
         }
 
         // Swap buffers
