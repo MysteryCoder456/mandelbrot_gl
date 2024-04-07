@@ -1,3 +1,6 @@
+extern crate gl;
+extern crate glfw;
+
 use glfw::{
     Context, Glfw, GlfwReceiver, OpenGlProfileHint, PWindow, WindowEvent, WindowHint, WindowMode,
 };
