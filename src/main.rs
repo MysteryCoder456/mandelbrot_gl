@@ -1,37 +1,29 @@
-use glfw::{Context, OpenGlProfileHint, WindowHint, WindowMode};
+use app::Application;
 
 extern crate gl;
 extern crate glfw;
 
+mod app;
+
 fn main() {
-    // Initialize GLFW
-    let mut glfw = glfw::init(glfw::fail_on_errors).expect("Failed to initialize GLFW");
-    glfw.window_hint(WindowHint::ContextVersion(3, 3));
-    glfw.window_hint(WindowHint::OpenGlProfile(OpenGlProfileHint::Core));
-    #[cfg(target_os = "macos")]
-    glfw.window_hint(WindowHint::OpenGlForwardCompat(true));
+    let mut app = Application::new(1024, 720, "Mandlebrot");
 
-    // Create window
-    let (mut window, events) = glfw
-        .create_window(1024, 576, "Mandlebrot", WindowMode::Windowed)
-        .expect("Failed to create window");
-    window.make_current();
-
-    // Load OpenGL functions
-    gl::load_with(|sym| window.get_proc_address(sym));
+    app.set_event_handler(|_event| {
+        // TODO: handle stuff here in future
+    });
 
     // Main loop
-    while !window.should_close() {
-        // Poll events
-        glfw.poll_events();
+    while app.is_running() {
+        // Handle events
+        app.handle_events();
 
         // Render
         unsafe {
             gl::Clear(gl::COLOR_BUFFER_BIT);
-            gl::ClearColor(0.0, 0.0, 0.0, 1.0);
+            gl::ClearColor(0.1, 0.1, 0.3, 1.0);
         }
 
         // Swap buffers
-        window.swap_buffers();
+        app.swap_window_buffers();
     }
 }
