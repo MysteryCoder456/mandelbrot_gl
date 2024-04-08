@@ -1,6 +1,6 @@
 #version 330
 
-#define MAX_ITERATIONS 10
+#define MAX_ITERATIONS 50
 
 in vec2 coord;
 out vec4 FragColor;

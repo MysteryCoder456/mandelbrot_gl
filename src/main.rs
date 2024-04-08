@@ -21,7 +21,8 @@ const VERTICES: [f32; 12] = [
      1.0,  1.0,
 ];
 
-const PAN_SPEED: f32 = 4.0;
+const PAN_SPEED: f32 = 0.5;
+const ZOOM_SPEED: f32 = 1.25;
 
 fn main() {
     let (mut app, events) = Application::new(1024, 720, "Mandelbrot");
@@ -69,7 +70,7 @@ fn main() {
     };
 
     let mut pan = glm::vec2(0.0, 0.0);
-    let mut zoom = 0.1;
+    let mut zoom = 1.0;
 
     // Main loop
     while app.is_window_open() {
@@ -79,12 +80,12 @@ fn main() {
             match event {
                 WindowEvent::Close => app.close_window(),
                 WindowEvent::FramebufferSize(w, h) => unsafe { gl::Viewport(0, 0, w, h) },
-                WindowEvent::Key(Key::Left, _, Action::Press, _) => pan.x -= PAN_SPEED,
-                WindowEvent::Key(Key::Right, _, Action::Press, _) => pan.x += PAN_SPEED,
-                WindowEvent::Key(Key::Up, _, Action::Press, _) => pan.y += PAN_SPEED,
-                WindowEvent::Key(Key::Down, _, Action::Press, _) => pan.y -= PAN_SPEED,
-                WindowEvent::Key(Key::Minus, _, Action::Press, _) => zoom /= 1.5,
-                WindowEvent::Key(Key::Equal, _, Action::Press, _) => zoom *= 1.5,
+                WindowEvent::Key(Key::Left, _, Action::Press, _) => pan.x -= PAN_SPEED / zoom,
+                WindowEvent::Key(Key::Right, _, Action::Press, _) => pan.x += PAN_SPEED / zoom,
+                WindowEvent::Key(Key::Up, _, Action::Press, _) => pan.y += PAN_SPEED / zoom,
+                WindowEvent::Key(Key::Down, _, Action::Press, _) => pan.y -= PAN_SPEED / zoom,
+                WindowEvent::Key(Key::Minus, _, Action::Press, _) => zoom /= ZOOM_SPEED,
+                WindowEvent::Key(Key::Equal, _, Action::Press, _) => zoom *= ZOOM_SPEED,
                 _ => {}
             }
         }
