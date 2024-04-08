@@ -1,6 +1,6 @@
 #version 330
 
-#define MAX_ITERATIONS 1000
+#define MAX_ITERATIONS 500
 #define BOUNDED_THRESHOLD 2.0
 
 in vec2 coord;
@@ -23,8 +23,11 @@ void main() {
     while (i++ < MAX_ITERATIONS && length(z) < BOUNDED_THRESHOLD)
         z = complex_product(z, z) + coord; // f(z) = z^2 + c
 
-    // TODO: More vibrant colors
-    float val = i < MAX_ITERATIONS ? 1 - float(i) / MAX_ITERATIONS : 0.0;
-    vec3 bgColor = vec3(0.3, 0.3, 0.7);
-    FragColor = vec4(bgColor * val, 1.0);
+    if (i < MAX_ITERATIONS) {
+        float val = 1 - float(i) / MAX_ITERATIONS;
+        vec3 color = vec3(val * 0.3, (1 - val), val * 0.6);
+        FragColor = vec4(color, 1.0);
+    } else {
+        FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+    }
 }
