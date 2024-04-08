@@ -2,10 +2,10 @@ extern crate gl;
 extern crate glfw;
 extern crate nalgebra_glm as glm;
 
-use std::ffi::c_void;
+use glfw::{Action, Key, WindowEvent};
+use std::{ffi::c_void, time::Instant};
 
 use app::Application;
-use glfw::{Action, Key, WindowEvent};
 use shader::Shader;
 
 mod app;
@@ -72,22 +72,39 @@ fn main() {
     let mut pan = glm::vec2(0.0, 0.0);
     let mut zoom = 1.0;
 
+    let mut last_frame = Instant::now();
+
     // Main loop
     while app.is_window_open() {
+        // Calculate time delta
+        let now = Instant::now();
+        let dt = (now - last_frame).as_secs_f32();
+        last_frame = now;
+
         // Handle events
         app.poll_events();
         for (_, event) in glfw::flush_messages(&events) {
             match event {
                 WindowEvent::Close => app.close_window(),
                 WindowEvent::FramebufferSize(w, h) => unsafe { gl::Viewport(0, 0, w, h) },
-                WindowEvent::Key(Key::Left, _, Action::Press, _) => pan.x -= PAN_SPEED / zoom,
-                WindowEvent::Key(Key::Right, _, Action::Press, _) => pan.x += PAN_SPEED / zoom,
-                WindowEvent::Key(Key::Up, _, Action::Press, _) => pan.y += PAN_SPEED / zoom,
-                WindowEvent::Key(Key::Down, _, Action::Press, _) => pan.y -= PAN_SPEED / zoom,
-                WindowEvent::Key(Key::Minus, _, Action::Press, _) => zoom /= ZOOM_SPEED,
-                WindowEvent::Key(Key::Equal, _, Action::Press, _) => zoom *= ZOOM_SPEED,
                 _ => {}
             }
+        }
+
+        if [app.get_key(Key::Left), app.get_key(Key::A)].contains(&Action::Press) {
+            pan.x -= PAN_SPEED / zoom * dt;
+        } else if [app.get_key(Key::Right), app.get_key(Key::D)].contains(&Action::Press) {
+            pan.x += PAN_SPEED / zoom * dt;
+        }
+        if [app.get_key(Key::Up), app.get_key(Key::W)].contains(&Action::Press) {
+            pan.y += PAN_SPEED / zoom * dt;
+        } else if [app.get_key(Key::Down), app.get_key(Key::S)].contains(&Action::Press) {
+            pan.y -= PAN_SPEED / zoom * dt;
+        }
+        if app.get_key(Key::Minus) == Action::Press {
+            zoom -= zoom * ZOOM_SPEED * dt;
+        } else if app.get_key(Key::Equal) == Action::Press {
+            zoom += zoom * ZOOM_SPEED * dt;
         }
 
         // Uniforms

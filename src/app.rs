@@ -48,6 +48,10 @@ impl Application {
         self.glfw.poll_events();
     }
 
+    pub fn get_key(&self, key: glfw::Key) -> glfw::Action {
+        self.window.get_key(key)
+    }
+
     pub fn swap_window_buffers(&mut self) {
         self.window.swap_buffers();
     }
