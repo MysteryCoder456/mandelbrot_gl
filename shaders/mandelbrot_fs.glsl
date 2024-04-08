@@ -23,6 +23,7 @@ void main() {
     while (i++ < MAX_ITERATIONS && length(z) < BOUNDED_THRESHOLD)
         z = complex_product(z, z) + coord; // f(z) = z^2 + c
 
+    // TODO: More vibrant colors
     float val = i < MAX_ITERATIONS ? 1 - float(i) / MAX_ITERATIONS : 0.0;
     vec3 bgColor = vec3(0.3, 0.3, 0.7);
     FragColor = vec4(bgColor * val, 1.0);
